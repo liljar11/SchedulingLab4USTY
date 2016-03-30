@@ -142,9 +142,6 @@ public class Scheduler {
 				if(!pqueue.isEmpty()) processExecution.switchToProcess(pqueue.peek());
 			}
 		}
-		else{
-			processExecution.switchToProcess(pqueue.remove());
-		}
 		System.out.println("BUID");
 		
 	}
