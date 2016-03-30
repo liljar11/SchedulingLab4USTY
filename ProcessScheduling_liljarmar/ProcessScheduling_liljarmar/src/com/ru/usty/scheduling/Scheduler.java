@@ -14,7 +14,7 @@ public class Scheduler {
 	/**
 	 * Add any objects and variables here (if needed)
 	 */
-
+	
 
 	/**
 	 * DO NOT CHANGE DEFINITION OF OPERATION
@@ -32,7 +32,6 @@ public class Scheduler {
 	 * DO NOT CHANGE DEFINITION OF OPERATION
 	 */
 	public void startScheduling(Policy policy, int quantum) {
-
 		this.policy = policy;
 		this.quantum = quantum;
 		pqueue = new LinkedList<Integer>();
@@ -46,17 +45,7 @@ public class Scheduler {
 			/**
 			 * Add your policy specific initialization code here (if needed)
 			 */
-				if(pqueue.isEmpty())
-				{
-					try {
-						pqueue.wait();
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-				processExecution.switchToProcess(pqueue.peek());
-			
+				
 			break;
 		case RR:	//Round robin
 			System.out.println("Starting new scheduling task: Round robin, quantum = " + quantum);
@@ -104,9 +93,16 @@ public class Scheduler {
 		/**
 		 * Add scheduling code here
 		 */
+		if(pqueue.isEmpty())
+		{
+			processExecution.switchToProcess(processID);
+			pqueue.add(processID);
+		}
+		else{
+			pqueue.add(processID);
+		}
+			
 		
-		pqueue.add(processID);
-		pqueue.notifyAll();
 
 	}
 
@@ -118,7 +114,9 @@ public class Scheduler {
 		/**
 		 * Add scheduling code here
 		 */
-		pqueue.remove(processID);
-		processExecution.switchToProcess(pqueue.peek());
+		pqueue.remove();
+		if(!pqueue.isEmpty()) processExecution.switchToProcess(pqueue.peek());
+		System.out.println("BUID");
+		
 	}
 }
