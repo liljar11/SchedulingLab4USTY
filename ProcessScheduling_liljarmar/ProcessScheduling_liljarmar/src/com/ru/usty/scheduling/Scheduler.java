@@ -41,6 +41,7 @@ public class Scheduler {
 		pqueue = new LinkedList<Integer>();
 		ifRunning = false;
 		RR = false;
+		
 		/**
 		 * Add general initialization code here (if needed)
 		 */
@@ -100,6 +101,7 @@ public class Scheduler {
 		/**
 		 * Add scheduling code here
 		 */
+		
 		if(ifRunning == false)
 		{
 			if(RR == true){
@@ -107,15 +109,16 @@ public class Scheduler {
 			pqueue.add(processID);
 			RRtimer(quantum);
 			}
-			else{
-				processExecution.switchToProcess(processID);
+			else {
+				if(pqueue.isEmpty()){
+					processExecution.switchToProcess(processID);
+					pqueue.add(processID);
+				}
+				else{
+					pqueue.add(processID);
+				}
 			}
-			ifRunning = true;
 		}
-		else{
-			pqueue.add(processID);
-		}
-		
 	}
 
 	/**
@@ -126,7 +129,6 @@ public class Scheduler {
 		/**
 		 * Add scheduling code here
 		 */
-		//pqueue.remove();
 		if(!pqueue.isEmpty()){
 			if(RR == true){
 				pqueue.remove(processID);
@@ -135,8 +137,9 @@ public class Scheduler {
                 RRtimer(quantum);
 			}
 			else{
+				pqueue.remove();
 				ifRunning = false;
-				//processExecution.switchToProcess(pqueue.peek());
+				if(!pqueue.isEmpty()) processExecution.switchToProcess(pqueue.peek());
 			}
 		}
 		else{
