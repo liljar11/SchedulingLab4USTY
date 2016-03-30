@@ -46,7 +46,16 @@ public class Scheduler {
 			/**
 			 * Add your policy specific initialization code here (if needed)
 			 */
-			processExecution.switchToProcess(pqueue.peek());
+				if(pqueue.isEmpty())
+				{
+					try {
+						pqueue.wait();
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				processExecution.switchToProcess(pqueue.peek());
 			
 			break;
 		case RR:	//Round robin
@@ -97,6 +106,7 @@ public class Scheduler {
 		 */
 		
 		pqueue.add(processID);
+		pqueue.notifyAll();
 
 	}
 
