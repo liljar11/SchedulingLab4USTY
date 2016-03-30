@@ -2,6 +2,7 @@ package com.ru.usty.scheduling;
 
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.*;
 
 import com.ru.usty.scheduling.process.ProcessExecution;
 
@@ -11,6 +12,9 @@ public class Scheduler {
 	Policy policy;
 	int quantum;
 	Queue <Integer> pqueue;
+	boolean ifRunning;
+	boolean RR;
+	Timer RoundRTimer = new Timer();
 	/**
 	 * Add any objects and variables here (if needed)
 	 */
@@ -35,6 +39,8 @@ public class Scheduler {
 		this.policy = policy;
 		this.quantum = quantum;
 		pqueue = new LinkedList<Integer>();
+		ifRunning = false;
+		RR = false;
 		/**
 		 * Add general initialization code here (if needed)
 		 */
@@ -49,6 +55,7 @@ public class Scheduler {
 			break;
 		case RR:	//Round robin
 			System.out.println("Starting new scheduling task: Round robin, quantum = " + quantum);
+			RR = true;
 			/**
 			 * Add your policy specific initialization code here (if needed)
 			 */
@@ -93,17 +100,22 @@ public class Scheduler {
 		/**
 		 * Add scheduling code here
 		 */
-		if(pqueue.isEmpty())
+		if(ifRunning == false)
 		{
-			processExecution.switchToProcess(processID);
+			if(RR == true){
+			//processExecution.switchToProcess(processID);
 			pqueue.add(processID);
+			RRtimer(quantum);
+			}
+			else{
+				processExecution.switchToProcess(processID);
+			}
+			ifRunning = true;
 		}
 		else{
 			pqueue.add(processID);
 		}
-			
 		
-
 	}
 
 	/**
@@ -114,9 +126,38 @@ public class Scheduler {
 		/**
 		 * Add scheduling code here
 		 */
-		pqueue.remove();
-		if(!pqueue.isEmpty()) processExecution.switchToProcess(pqueue.peek());
+		//pqueue.remove();
+		if(!pqueue.isEmpty()){
+			if(RR == true){
+				pqueue.remove(processID);
+                RoundRTimer.cancel();
+                RoundRTimer = new Timer();
+                RRtimer(quantum);
+			}
+			else{
+				ifRunning = false;
+				//processExecution.switchToProcess(pqueue.peek());
+			}
+		}
+		else{
+			processExecution.switchToProcess(pqueue.remove());
+		}
 		System.out.println("BUID");
 		
 	}
+	
+	public void RRtimer(int quantum){
+		RoundRTimer.scheduleAtFixedRate(
+			new TimerTask(){
+				@Override
+				public void run(){
+					if(!pqueue.isEmpty()){
+						int temp = pqueue.remove();
+						processExecution.switchToProcess(temp);
+						pqueue.add(temp);
+					}
+				}
+			},0, quantum);
+	}
 }
+
