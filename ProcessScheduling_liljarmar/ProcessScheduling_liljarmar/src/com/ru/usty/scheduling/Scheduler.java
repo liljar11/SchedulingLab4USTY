@@ -1,5 +1,8 @@
 package com.ru.usty.scheduling;
 
+import java.util.LinkedList;
+import java.util.Queue;
+
 import com.ru.usty.scheduling.process.ProcessExecution;
 
 public class Scheduler {
@@ -7,7 +10,7 @@ public class Scheduler {
 	ProcessExecution processExecution;
 	Policy policy;
 	int quantum;
-
+	Queue <Integer> pqueue;
 	/**
 	 * Add any objects and variables here (if needed)
 	 */
@@ -22,6 +25,7 @@ public class Scheduler {
 		/**
 		 * Add general initialization code here (if needed)
 		 */
+		
 	}
 
 	/**
@@ -31,7 +35,7 @@ public class Scheduler {
 
 		this.policy = policy;
 		this.quantum = quantum;
-
+		pqueue = new LinkedList<Integer>();
 		/**
 		 * Add general initialization code here (if needed)
 		 */
@@ -42,6 +46,8 @@ public class Scheduler {
 			/**
 			 * Add your policy specific initialization code here (if needed)
 			 */
+			processExecution.switchToProcess(pqueue.peek());
+			
 			break;
 		case RR:	//Round robin
 			System.out.println("Starting new scheduling task: Round robin, quantum = " + quantum);
@@ -89,6 +95,8 @@ public class Scheduler {
 		/**
 		 * Add scheduling code here
 		 */
+		
+		pqueue.add(processID);
 
 	}
 
@@ -100,6 +108,7 @@ public class Scheduler {
 		/**
 		 * Add scheduling code here
 		 */
-
+		pqueue.remove(processID);
+		processExecution.switchToProcess(pqueue.peek());
 	}
 }
