@@ -13,9 +13,9 @@ public class Scheduler {
 	int quantum;
 	Queue <Integer> pqueue;
 	boolean ifRunning;
-	boolean RR;
-	boolean SPN;
+	boolean RR, FR, SPN, SPNN, SRT;
 	Timer RoundRTimer = new Timer();
+	int running;
 	/**
 	 * Add any objects and variables here (if needed)
 	 */
@@ -42,8 +42,11 @@ public class Scheduler {
 		pqueue = new LinkedList<Integer>();
 		ifRunning = false;
 		RR = false;
+		FR = false;
 		SPN = false;
-		
+		SPNN = false;
+		SRT = false;
+		running = 0;
 		/**
 		 * Add general initialization code here (if needed)
 		 */
@@ -54,10 +57,11 @@ public class Scheduler {
 			/**
 			 * Add your policy specific initialization code here (if needed)
 			 */
+				FR = true;
 			break;
 		case RR:	//Round robin
 			System.out.println("Starting new scheduling task: Round robin, quantum = " + quantum);
-			RR = true;
+				RR = true;
 			/**
 			 * Add your policy specific initialization code here (if needed)
 			 */
@@ -72,6 +76,7 @@ public class Scheduler {
 			break;
 		case SRT:	//Shortest remaining time
 			System.out.println("Starting new scheduling task: Shortest remaining time");
+			SRT = true;
 			/**
 			 * Add your policy specific initialization code here (if needed)
 			 */
@@ -104,84 +109,142 @@ public class Scheduler {
 		/**
 		 * Add scheduling code here
 		 */
-		
-		if(ifRunning == false)
-		{
-			if(RR == true){
-				//System.out.println("RR");
+		if(FR || RR ){
+			if(pqueue.isEmpty()){
+				processExecution.switchToProcess(processID);
 				pqueue.add(processID);
-				RRtimer(quantum);
-			}
-			else if(SPN == true){
-				//System.out.println("SPN");
-					if(pqueue.isEmpty()){
-						//System.out.println("SPN empty");
-						processExecution.switchToProcess(processID);
-					}
 			}
 			else{
-				//System.out.println("FCFS");
-				if(pqueue.isEmpty()){
-					//System.out.println("FCFS empty");
-					processExecution.switchToProcess(processID);
-					pqueue.add(processID);
-				}
-				else{
-					//System.out.println("FCFS not empty");
-					pqueue.add(processID);
-				}
-			}		
-			ifRunning = true;
+				pqueue.add(processID);
+			}
+		}
+		else if(pqueue.isEmpty() && !SPNN)
+		{
+			processExecution.switchToProcess(processID);
+			System.out.println("test processID " + processID);
+			running = processID;
+			//pqueue.add(processID);
+			if(SPN || SRT) SPNN = true;
+			//if(RR) RRtimer(quantum);	
 		}
 		else{
-			pqueue.add(processID);
+			System.out.println("test processID " + processID);
+			if(SRT){
+				long nowTime = (processExecution.getProcessInfo(running).totalServiceTime - processExecution.getProcessInfo(running).elapsedExecutionTime);
+				if(nowTime > processExecution.getProcessInfo(processID).totalServiceTime)
+				{
+					processExecution.switchToProcess(processID);
+					pqueue.add(running);
+					running = processID;
+				}
+				else pqueue.add(processID);
+			
+			//if(RR) RRtimer(quantum);
 		}
+			else pqueue.add(processID);}
+		
 	}
 
 	/**
 	 * DO NOT CHANGE DEFINITION OF OPERATION
 	 */
 	public void processFinished(int processID) {
-
+		System.out.println("test");
 		/**
 		 * Add scheduling code here
 		 */
+		
+		if(FR){
+			pqueue.remove();
+			FCFRRunning();
+		}
+		//pqueue.remove();
+		else if(RR){
+			RRRunning(processID);
+		}
+		else if(SPN){
+			SPNRunning(processID);
+		}
+		else if(SRT){
+			SRTRunning(processID);
+		}
+		System.out.println("BUID");
+		
+	}
+	public void SPNRunning(int processID){
 		if(!pqueue.isEmpty()){
-			if(RR == true){
+			int sp = pqueue.peek();
+			System.out.println("test1");
+			Iterator<Integer> iter = pqueue.iterator();
+			System.out.println("test2");
+	    	// Check if the queue has any processes left
+	    	while (iter.hasNext()){
+	    		System.out.println("test3");
+	   		// Get the next process and check if it's smaller than any current waiting processes
+	    		int nextProcess = iter.next();
+
+	   			if((processExecution.getProcessInfo(sp).totalServiceTime) > (processExecution.getProcessInfo(nextProcess).totalServiceTime))
+	   			{
+	   				System.out.println("test5");
+	   				sp = nextProcess;
+	   				System.out.println("smallest found");
+	   			}
+	   		}
+	        pqueue.remove(sp);
+	        System.out.println("test6");
+	        processExecution.switchToProcess(sp);
+	        System.out.println("switching to smallest");
+		}
+		else SPNN = false;
+	}
+	
+	public void SRTRunning(int processID){
+		if(!pqueue.isEmpty()){
+			int sp = pqueue.peek();
+			System.out.println("test1");
+			Iterator<Integer> iter = pqueue.iterator();
+			System.out.println("test2");
+	    	// Check if the queue has any processes left
+	    	while (iter.hasNext()){
+	    		System.out.println("test3");
+	   		// Get the next process and check if it's smaller than any current waiting processes
+	    		int nextProcess = iter.next();
+   				System.out.println("smallest found " + processExecution.getProcessInfo(nextProcess).totalServiceTime);
+
+	   			if((processExecution.getProcessInfo(sp).totalServiceTime) > (processExecution.getProcessInfo(nextProcess).totalServiceTime))
+	   			{
+	   				System.out.println("test5");
+	   				sp = nextProcess;
+	   				System.out.println("smallest found");
+	   			}
+	   		}
+	        pqueue.remove(sp);
+	        System.out.println("test6");
+	        processExecution.switchToProcess(sp);
+	        running = sp;
+	        System.out.println("switching to smallest");
+		}
+		else SPNN = false;
+	}
+	
+	public void RRRunning(int processID){
+			
 				pqueue.remove(processID);
                 RoundRTimer.cancel();
                 RoundRTimer = new Timer();
                 RRtimer(quantum);
-			}
-			else if(SPN == true){
-                // Find the smallest processor
-				int sp = pqueue.peek();
-				Iterator<Integer> iter = pqueue.iterator();
-            	// Check if the queue has any processes left
-            	while (iter.hasNext()){
-           		// Get the next process and check if it's smaller than any current waiting processes
-          			int nextProcess = iter.next();
-           			if((processExecution.getProcessInfo(sp).totalServiceTime) > (processExecution.getProcessInfo(nextProcess).totalServiceTime)){
-           				sp = nextProcess;
-           				System.out.println("smallest found");
-           			}
-           		}
-                pqueue.remove(sp);
-                processExecution.switchToProcess(sp);
-                System.out.println("switching to smallest");
-            }
-			else{
-				pqueue.remove();
-				ifRunning = false;
-				if(!pqueue.isEmpty()) processExecution.switchToProcess(pqueue.peek());
-			}
-		}
-		else{
-			ifRunning = false;
-		}
-		System.out.println("Process finished");
-		
+			
+			
 	}
+	public void FCFRRunning(){
+		
+		if(!pqueue.isEmpty())
+		{
+			processExecution.switchToProcess(pqueue.peek());
+		}
+	}
+	
+	
 	
 	public void RRtimer(int quantum){
 		RoundRTimer.scheduleAtFixedRate(
