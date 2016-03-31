@@ -56,7 +56,7 @@ public class Scheduler {
 			break;
 		case RR:	//Round robin
 			System.out.println("Starting new scheduling task: Round robin, quantum = " + quantum);
-			
+				RR = true;
 			/**
 			 * Add your policy specific initialization code here (if needed)
 			 */
@@ -102,14 +102,15 @@ public class Scheduler {
 		 * Add scheduling code here
 		 */
 	
-		if(ifRunning == false)
+		if(pqueue.isEmpty())
 		{
 			processExecution.switchToProcess(processID);
 			pqueue.add(processID);
-			ifRunning = true;
+			if(RR) RRtimer(quantum);
 		}
 		else{
 			pqueue.add(processID);
+			if(RR) RRtimer(quantum);
 		}
 		
 	}
@@ -128,23 +129,20 @@ public class Scheduler {
 			FCFRRunning();
 		}
 		//pqueue.remove();
-		if(!pqueue.isEmpty()){
-			if(RR == true){
+		if(RR){
+			RRRunning(processID);
+		}
+		System.out.println("BUID");
+		
+	}
+	public void RRRunning(int processID){
+			
 				pqueue.remove(processID);
                 RoundRTimer.cancel();
                 RoundRTimer = new Timer();
                 RRtimer(quantum);
-			}
-			else{
-				ifRunning = false;
-				//processExecution.switchToProcess(pqueue.peek());
-			}
-		}
-		else{
-			processExecution.switchToProcess(pqueue.remove());
-		}
-		System.out.println("BUID");
-		
+			
+			
 	}
 	public void FCFRRunning(){
 		
@@ -152,11 +150,10 @@ public class Scheduler {
 		{
 			processExecution.switchToProcess(pqueue.peek());
 		}
-		else ifRunning = false;
-		
-		
-		
 	}
+	
+	
+	
 	public void RRtimer(int quantum){
 		RoundRTimer.scheduleAtFixedRate(
 			new TimerTask(){
