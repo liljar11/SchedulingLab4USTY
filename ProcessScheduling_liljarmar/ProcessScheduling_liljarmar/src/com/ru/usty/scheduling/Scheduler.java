@@ -13,7 +13,7 @@ public class Scheduler {
 	int quantum;
 	Queue <Integer> pqueue;
 	boolean ifRunning;
-	boolean RR;
+	boolean RR , FR;
 	Timer RoundRTimer = new Timer();
 	/**
 	 * Add any objects and variables here (if needed)
@@ -41,6 +41,7 @@ public class Scheduler {
 		pqueue = new LinkedList<Integer>();
 		ifRunning = false;
 		RR = false;
+		FR = false;
 		/**
 		 * Add general initialization code here (if needed)
 		 */
@@ -51,11 +52,11 @@ public class Scheduler {
 			/**
 			 * Add your policy specific initialization code here (if needed)
 			 */
-				
+				FR = true;
 			break;
 		case RR:	//Round robin
 			System.out.println("Starting new scheduling task: Round robin, quantum = " + quantum);
-			RR = true;
+			
 			/**
 			 * Add your policy specific initialization code here (if needed)
 			 */
@@ -100,16 +101,11 @@ public class Scheduler {
 		/**
 		 * Add scheduling code here
 		 */
+	
 		if(ifRunning == false)
 		{
-			if(RR == true){
-			//processExecution.switchToProcess(processID);
+			processExecution.switchToProcess(processID);
 			pqueue.add(processID);
-			RRtimer(quantum);
-			}
-			else{
-				processExecution.switchToProcess(processID);
-			}
 			ifRunning = true;
 		}
 		else{
@@ -126,6 +122,11 @@ public class Scheduler {
 		/**
 		 * Add scheduling code here
 		 */
+		
+		if(FR){
+			pqueue.remove();
+			FCFRRunning();
+		}
 		//pqueue.remove();
 		if(!pqueue.isEmpty()){
 			if(RR == true){
@@ -145,7 +146,17 @@ public class Scheduler {
 		System.out.println("BUID");
 		
 	}
-	
+	public void FCFRRunning(){
+		
+		if(!pqueue.isEmpty())
+		{
+			processExecution.switchToProcess(pqueue.peek());
+		}
+		else ifRunning = false;
+		
+		
+		
+	}
 	public void RRtimer(int quantum){
 		RoundRTimer.scheduleAtFixedRate(
 			new TimerTask(){
